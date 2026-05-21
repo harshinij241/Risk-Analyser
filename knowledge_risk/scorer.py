@@ -1,6 +1,6 @@
-from .models import NormalizedFeatures, RawFeatures, RiskScore
-from .confidence import compute_confidence
-from .extractor import compute_recency_raw, compute_hhi_raw
+from models import NormalizedFeatures, RawFeatures, RiskScore
+from confidence import compute_confidence
+from extractor import compute_recency_raw, compute_hhi_raw
 
 def compute_risk(norm: NormalizedFeatures,
                 raw: RawFeatures,

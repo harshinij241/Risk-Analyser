@@ -1,9 +1,8 @@
-# knowledge_risk/confidence.py
 
 from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime, timedelta
-from .models import RawFeatures
+from models import RawFeatures
 
 
 # ── Thresholds (tune these after calibration) ─────────────────────────────

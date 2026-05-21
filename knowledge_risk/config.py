@@ -155,13 +155,13 @@ def load_from_dict(data: dict) -> RiskConfig:
 
     Example .knowledge-risk.yml:
         decay:
-          lambda_decay: 0.006
+            lambda_decay: 0.006
         pipeline:
-          top_n: 30
+            top_n: 30
         filters:
-          exclude_globs:
-            - "*.lock"
-            - "generated/*"
+            exclude_globs:
+                - "*.lock"
+                - "generated/*"
     """
     config = RiskConfig()
 

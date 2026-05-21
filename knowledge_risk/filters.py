@@ -1,5 +1,5 @@
 import fnmatch
-from .models import FileCommit
+from models import FileCommit
 
 BOT_PATTERNS = [
     'bot', 'dependabot', 'renovate', 'github-actions',
