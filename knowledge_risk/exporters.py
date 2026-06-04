@@ -3,7 +3,7 @@ import csv
 import io
 from datetime import datetime
 from typing import Optional
-from models import RiskScore
+from .models import RiskScore
 
 
 # ── JSON ───────────────────────────────────────────────────────────────────

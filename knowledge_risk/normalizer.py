@@ -1,6 +1,8 @@
 from scipy import stats
 import numpy as np
 
+from .models import RawFeatures, NormalizedFeatures
+
 def percentile_normalize(values: list[float]) -> list[float]:
     if len(values) <= 1:
         return [0.0] * len(values)

@@ -3,8 +3,9 @@ import ast
 from collections import defaultdict
 from datetime import datetime
 from typing import Optional
-from models import FileCommit, RawFeatures
-from filters import filter_commits
+
+from .models import FileCommit, RawFeatures
+from .filters import filter_commits
 
 DECISION_KEYWORDS = {
     'python': ['if ', 'elif ', 'else:', 'for ', 'while ',

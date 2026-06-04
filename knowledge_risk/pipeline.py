@@ -1,8 +1,8 @@
-from extractor import extract_raw_features
-from normalizer import normalize_repo
-from scorer import compute_risk
-from filters import is_excluded_file
-from models import FileCommit, RiskScore
+from .extractor import extract_raw_features
+from .normalizer import normalize_repo
+from .scorer import compute_risk
+from .filters import is_excluded_file
+from .models import FileCommit, RiskScore
 
 def run_pipeline(file_commit_map: dict[str, list[FileCommit]],
                 top_n: int = 20) -> list[RiskScore]:

@@ -1,6 +1,6 @@
-from models import NormalizedFeatures, RawFeatures, RiskScore
-from confidence import compute_confidence
-from extractor import compute_recency_raw, compute_hhi_raw
+from .models import NormalizedFeatures, RawFeatures, RiskScore
+from .confidence import compute_confidence
+from .extractor import compute_recency_raw, compute_hhi_raw
 
 def compute_risk(norm: NormalizedFeatures,
                 raw: RawFeatures,
@@ -13,7 +13,7 @@ def compute_risk(norm: NormalizedFeatures,
 
     _, top_authors = compute_hhi_raw(commits)
     _, living_knowledge, last_commit = compute_recency_raw(commits)
-    confidence, flags = compute_confidence(raw)
+    confidence_result = compute_confidence(raw)
 
     return RiskScore(
         file_path=norm.file_path,
@@ -23,9 +23,9 @@ def compute_risk(norm: NormalizedFeatures,
         complexity=norm.complexity,
         churn=norm.churn,
         fragility=round(fragility, 4),
-        amplifier=round(amplifier, 4),
-        confidence=confidence,
-        confidence_flags=flags,
+        amplifier= round(amplifier, 4),
+        confidence= confidence_result.level,
+        confidence_flags=confidence_result.to_strings(),
         top_authors=top_authors,
         living_knowledge=living_knowledge,
         last_meaningful_commit=last_commit

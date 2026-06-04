@@ -89,6 +89,7 @@ class PipelineConfig:
     max_commits_per_file: int = 500  # cap to avoid huge repo slowdowns
 
 
+
 @dataclass
 class RiskConfig:
     """

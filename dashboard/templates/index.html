@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowledge Risk Mapper</title>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <h1>🗺 Codebase Knowledge Risk Mapper</h1>
+    <p class="subtitle">
+      Identify which files are at risk of becoming orphaned
+    </p>
+  </header>
+
+  <!-- Analyze Form -->
+  <section class="card" id="analyze-section">
+    <h2>Analyze a Repository</h2>
+    <div class="form-row">
+      <input id="input-owner"  placeholder="Owner (e.g. facebook)"  />
+      <input id="input-repo"   placeholder="Repo (e.g. react)"      />
+      <input id="input-token"  placeholder="GitHub Token"
+             type="password"   />
+      <input id="input-model"  placeholder="LLM Model"
+             value="gemma4:e4b"/>
+    </div>
+    <button id="btn-analyze" onclick="startAnalysis()">
+      Run Analysis
+    </button>
+    <div id="progress-bar" class="hidden">
+      <div id="progress-fill"></div>
+      <span id="progress-message"></span>
+    </div>
+  </section>
+
+  <!-- Summary Cards -->
+  <section id="summary-section" class="hidden">
+    <div class="stat-grid">
+      <div class="stat-card red">
+        <div class="stat-number" id="stat-high">—</div>
+        <div class="stat-label">High Risk Files</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-number" id="stat-medium">—</div>
+        <div class="stat-label">Medium Risk Files</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-number" id="stat-low">—</div>
+        <div class="stat-label">Low Risk Files</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-number" id="stat-avg">—</div>
+        <div class="stat-label">Avg Risk Score</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Treemap -->
+  <section class="card hidden" id="treemap-section">
+    <h2>Risk Treemap</h2>
+    <p class="hint">
+      Size = complexity · Color = risk score ·
+      Click to drill down
+    </p>
+    <div id="treemap-chart"></div>
+  </section>
+
+  <!-- Network Graph -->
+  <section class="card hidden" id="network-section">
+    <h2>Developer–File Knowledge Network</h2>
+    <p class="hint">
+      Lines show who owns which files ·
+      Thick lines = dominant contributor
+    </p>
+    <div id="network-chart"></div>
+  </section>
+
+  <!-- File Table -->
+  <section class="card hidden" id="table-section">
+    <h2>All High-Risk Files</h2>
+    <table id="risk-table">
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Score</th>
+          <th>Confidence</th>
+          <th>Top Author</th>
+          <th>Living Knowledge</th>
+          <th>Last Commit</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </section>
+
+  <!-- File Detail Modal -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <h2 id="modal-file"></h2>
+      <div class="modal-score">
+        Risk Score: <span id="modal-score"></span>
+      </div>
+      <div class="modal-grid">
+        <div class="modal-block">
+          <h3>What it does</h3>
+          <p id="modal-what"></p>
+        </div>
+        <div class="modal-block">
+          <h3>Domain knowledge required</h3>
+          <p id="modal-domain"></p>
+        </div>
+        <div class="modal-block">
+          <h3>Onboarding notes</h3>
+          <p id="modal-onboarding"></p>
+        </div>
+        <div class="modal-block highlight">
+          <h3>Recommended action</h3>
+          <p id="modal-action"></p>
+        </div>
+      </div>
+      <div id="modal-flags"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="/static/js/main.js"></script>
+</body>
+</html>

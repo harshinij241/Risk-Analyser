@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 # ── Token scope validation ─────────────────────────────────────────────────
 
-REQUIRED_SCOPES_PUBLIC  = {"public_repo"}
+REQUIRED_SCOPES_PUBLIC  = {"public_repo", "repo"}
 REQUIRED_SCOPES_PRIVATE = {"repo"}
 
 class RepoVisibility(Enum):
