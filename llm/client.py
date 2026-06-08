@@ -103,7 +103,7 @@ class OllamaClient:
                     messages = messages,
                     options  = {
                         "temperature": 0.2,
-                        "num_predict": 1024,
+                        "num_predict": 2048,
                         "top_p":       0.9,
                     }
                 )

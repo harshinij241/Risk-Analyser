@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ file.file_path.split('/')[-1] }} — TacitAI</title>
+  <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-brand">
+      <span class="logo">TacitAI</span>
+      <span class="version">v0.1.0</span>
+    </div>
+    <a href="/" style="
+      font-family:var(--font-mono);
+      font-size:10px;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      color:var(--gray-6);
+      text-decoration:none;
+      border:var(--border);
+      padding:6px 14px;
+      border-radius:var(--radius-sm);
+      transition:color 0.15s;
+    ">← Dashboard</a>
+  </header>
+
+  <div style="max-width:1100px;margin:0 auto;width:100%">
+
+    <!-- File header -->
+    <div class="detail-header">
+      <div class="detail-filepath">{{ file.file_path }}</div>
+      <div class="detail-title">{{ file.file_path.split('/')[-1] }}</div>
+      <div class="detail-badges">
+        {% set rc = 'high' if file.score >= 75 else ('medium' if file.score >= 40 else 'low') %}
+        <span class="badge {{ rc }}">{{ "%.1f"|format(file.score) }} / 100</span>
+        {% if file.business_criticality %}
+        <span class="badge criticality-{{ file.business_criticality|lower }}">
+          {{ file.business_criticality }} criticality
+        </span>
+        {% endif %}
+        <span class="badge">{{ file.confidence }} confidence</span>
+        <span class="badge">bus factor {{ file.top_authors|length }}</span>
+        {% if file.last_meaningful_commit %}
+        <span class="badge">last commit {{ file.last_meaningful_commit }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="detail-body">
+
+      <!-- Score breakdown -->
+      <div class="detail-section">
+        <div class="section-label">Risk score</div>
+        <div class="score-display">
+          <span class="score-number {{ rc }}">{{ file.score|int }}</span>
+          <span class="score-denom">/ 100</span>
+        </div>
+
+        {% set owner_pts = (0.45 * file.hhi * 100 * file.amplifier)|round(1) %}
+        {% set stale_pts = (0.25 * file.decayed_recency * 100 * file.amplifier)|round(1) %}
+
+        <div class="breakdown-row">
+          <span class="breakdown-label">
+            Ownership (HHI {{ "%.2f"|format(file.hhi) }})
+          </span>
+          <div class="breakdown-bar-wrap">
+            <div class="breakdown-bar"
+                 style="width:{{ (file.hhi*100)|int }}%;
+                        background:var(--danger)">
+            </div>
+          </div>
+          <span class="breakdown-value pos">+{{ owner_pts }}</span>
+        </div>
+
+        <div class="breakdown-row">
+          <span class="breakdown-label">
+            Staleness ({{ (file.decayed_recency*100)|int }}%)
+          </span>
+          <div class="breakdown-bar-wrap">
+            <div class="breakdown-bar"
+                 style="width:{{ (file.decayed_recency*100)|int }}%;
+                        background:var(--warn)">
+            </div>
+          </div>
+          <span class="breakdown-value pos">+{{ stale_pts }}</span>
+        </div>
+
+        <div class="breakdown-row">
+          <span class="breakdown-label">Complexity amplifier</span>
+          <div class="breakdown-bar-wrap">
+            <div class="breakdown-bar"
+                 style="width:{{ (file.complexity*100)|int }}%">
+            </div>
+          </div>
+          <span class="breakdown-value">{{ "%.2f"|format(file.complexity) }}×</span>
+        </div>
+
+        <div class="breakdown-row">
+          <span class="breakdown-label">Churn amplifier</span>
+          <div class="breakdown-bar-wrap">
+            <div class="breakdown-bar"
+                 style="width:{{ (file.churn*100)|int }}%">
+            </div>
+          </div>
+          <span class="breakdown-value">{{ "%.2f"|format(file.churn) }}×</span>
+        </div>
+
+        <div class="breakdown-row">
+          <span class="breakdown-label">Living knowledge retained</span>
+          <div class="breakdown-bar-wrap">
+            <div class="breakdown-bar"
+                 style="width:{{ (file.living_knowledge*100)|int }}%;
+                        background:var(--ok)">
+            </div>
+          </div>
+          <span class="breakdown-value neg">
+            {{ (file.living_knowledge*100)|int }}%
+          </span>
+        </div>
+      </div>
+
+      <!-- Ownership -->
+      <div class="detail-section">
+        <div class="section-label">Ownership</div>
+
+        {% set primary = file.top_authors[0] if file.top_authors else none %}
+        {% set backup_count = [file.top_authors|length - 1, 0]|max %}
+        {% set bus_factor = file.top_authors|length %}
+
+        <div class="ownership-grid">
+          <div class="ownership-stat">
+            <div class="ownership-value">
+              {{ primary.author.split(/[^a-zA-Z]/)[0] if primary else '—' }}
+            </div>
+            <div class="ownership-label">Primary owner</div>
+          </div>
+          <div class="ownership-stat">
+            <div class="ownership-value">
+              {{ (primary.share * 100)|int }}%
+            </div>
+            <div class="ownership-label">Share</div>
+          </div>
+          <div class="ownership-stat">
+            <div class="ownership-value {{ 'danger' if backup_count == 0 }}">
+              {{ backup_count }}
+            </div>
+            <div class="ownership-label">Backups</div>
+          </div>
+          <div class="ownership-stat">
+            <div class="ownership-value {{ 'danger' if bus_factor == 1 }}">
+              {{ bus_factor }}
+            </div>
+            <div class="ownership-label">Bus factor</div>
+          </div>
+        </div>
+
+        {% for author in file.top_authors %}
+        <div class="author-row">
+          <div class="author-avatar">{{ author.author[0]|upper }}</div>
+          <div class="author-name">{{ author.author }}</div>
+          <div class="author-share-bar">
+            <div class="author-share-fill"
+                 style="width:{{ (author.share*100)|int }}%">
+            </div>
+          </div>
+          <div class="author-pct">{{ (author.share*100)|int }}%</div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Business impact -->
+      {% if file.business_impact %}
+      <div class="detail-section">
+        <div class="section-label">Business impact</div>
+        <div class="impact-text">{{ file.business_impact }}</div>
+      </div>
+      {% endif %}
+
+      <!-- Onboarding notes -->
+      {% if file.onboarding_notes %}
+      <div class="detail-section">
+        <div class="section-label">Onboarding notes</div>
+        <div class="onboarding-text">{{ file.onboarding_notes }}</div>
+      </div>
+      {% endif %}
+
+      <!-- Knowledge areas -->
+      {% if file.knowledge_areas %}
+      <div class="detail-section">
+        <div class="section-label">Knowledge areas required</div>
+        <ul class="knowledge-list">
+          {% for area in file.knowledge_areas %}
+          <li class="knowledge-item">{{ area }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- Risk drivers -->
+      {% if file.risk_drivers %}
+      <div class="detail-section">
+        <div class="section-label">Risk drivers</div>
+        <ul class="driver-list">
+          {% for driver in file.risk_drivers %}
+          {% set is_pos = driver.startswith('+') %}
+          <li class="driver-item {{ 'pos' if is_pos else 'neg' }}">
+            {{ driver[1:].strip() if driver[0] in ['+', '-'] else driver }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- Recommended actions -->
+      {% if file.recommended_actions %}
+      <div class="detail-section full">
+        <div class="section-label">Recommended actions</div>
+        <ul class="action-list">
+          {% for action in file.recommended_actions %}
+          <li class="action-item">
+            <span class="action-num">{{ "%02d"|format(loop.index) }}</span>
+            <span class="action-text">{{ action }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <!-- Confidence flags -->
+      {% if file.confidence_flags %}
+      <div class="detail-section full">
+        <div class="section-label">Confidence flags</div>
+        <div class="flag-list">
+          {% for flag in file.confidence_flags %}
+          <div class="flag-item">{{ flag }}</div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

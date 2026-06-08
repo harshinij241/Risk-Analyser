@@ -1,6 +1,5 @@
 import json
 import plotly.graph_objects as go
-import plotly.express as px
 from knowledge_risk.models import RiskScore
 from llm.models import LLMSummary
 
@@ -49,9 +48,11 @@ def build_treemap(scores: list[RiskScore],
     # Add file nodes
     for s in scores:
         summary = summaries.get(s.file_path)
-        what    = (summary.what_it_does[:80] + "..."
-                   if summary and len(summary.what_it_does) > 80
-                   else (summary.what_it_does if summary else ""))
+        what = ""
+        if summary and summary.business_impact:
+            what = (summary.business_impact[:80] + "..."
+                    if len(summary.business_impact) > 80
+                    else summary.business_impact)
 
         parent = "/".join(s.file_path.split("/")[:-1])
 
@@ -98,7 +99,7 @@ def build_treemap(scores: list[RiskScore],
     ))
 
     fig.update_layout(
-        title     = "Codebase Knowledge Risk Map",
+        title     = "TacitAI Codebase Map",
         margin    = dict(t=40, l=0, r=0, b=0),
         height    = 500,
         paper_bgcolor = "rgba(0,0,0,0)",

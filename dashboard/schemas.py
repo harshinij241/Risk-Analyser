@@ -4,38 +4,45 @@ from pydantic import BaseModel
 from typing import Optional
 
 
-class FileRiskSchema(BaseModel):
+class AuthorShare(BaseModel):          # ← must come first
+    author: str
+    share:  float
+
+
+class FileRiskResponse(BaseModel):     # ← uses AuthorShare
     file_path:              str
     score:                  float
+    confidence:             str
     hhi:                    float
     decayed_recency:        float
     complexity:             float
     churn:                  float
-    confidence:             str
+    fragility:              float
+    amplifier:              float
     living_knowledge:       float
-    top_author:             str
+    top_authors:            list[AuthorShare]
     last_meaningful_commit: Optional[str]
-    what_it_does:           str
-    domain_knowledge:       str
-    onboarding_notes:       str
-    recommended_action:     str
     confidence_flags:       list[str]
 
-
-class DashboardData(BaseModel):
-    owner:         str
-    repo:          str
-    total_files:   int
-    high_risk:     int       # score >= 75
-    medium_risk:   int       # score 40-74
-    low_risk:      int       # score < 40
-    avg_score:     float
-    files:         list[FileRiskSchema]
+    # Structured LLM fields
+    business_criticality:   Optional[str]       = None
+    business_impact:        Optional[str]       = None
+    knowledge_areas:        Optional[list[str]] = None
+    risk_drivers:           Optional[list[str]] = None
+    recommended_actions:    Optional[list[str]] = None
+    onboarding_notes:       Optional[str]       = None
+    llm_model:              Optional[str]       = None
 
 
-class ChartResponse(BaseModel):
-    treemap_json:  str       # Plotly JSON
-    network_json:  str       # Plotly JSON
+class RepoSummaryResponse(BaseModel):
+    owner:          str
+    repo:           str
+    total_files:    int
+    high_risk:      int
+    medium_risk:    int
+    low_risk:       int
+    avg_score:      float
+    files:          list[FileRiskResponse]
 
 
 class AnalyzeRequest(BaseModel):
@@ -45,3 +52,9 @@ class AnalyzeRequest(BaseModel):
     max_files:   int = 1000
     max_commits: int = 300
     model:       str = "gemma4:e4b"
+    top_n:       int = 20
+
+
+class ChartResponse(BaseModel):
+    treemap_json: str
+    network_json: str

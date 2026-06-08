@@ -3,133 +3,176 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Knowledge Risk Mapper</title>
+  <title>TacitAI</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <link rel="stylesheet" href="/static/css/main.css">
-  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
 <body>
-
-<div class="container">
+<div class="app">
 
   <!-- Header -->
-  <header>
-    <h1>🗺 Codebase Knowledge Risk Mapper</h1>
-    <p class="subtitle">
-      Identify which files are at risk of becoming orphaned
-    </p>
+  <header class="header">
+    <div class="header-brand">
+      <span class="logo">TacitAI</span>
+      <span class="version">v0.1.0</span>
+    </div>
+    <div class="header-status" id="header-status">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">Ready</span>
+    </div>
   </header>
 
-  <!-- Analyze Form -->
-  <section class="card" id="analyze-section">
-    <h2>Analyze a Repository</h2>
-    <div class="form-row">
-      <input id="input-owner"  placeholder="Owner (e.g. facebook)"  />
-      <input id="input-repo"   placeholder="Repo (e.g. react)"      />
-      <input id="input-token"  placeholder="GitHub Token"
-             type="password"   />
-      <input id="input-model"  placeholder="LLM Model"
-             value="gemma4:e4b"/>
-    </div>
-    <button id="btn-analyze" onclick="startAnalysis()">
-      Run Analysis
-    </button>
-    <div id="progress-bar" class="hidden">
-      <div id="progress-fill"></div>
-      <span id="progress-message"></span>
-    </div>
-  </section>
+  <div class="main">
 
-  <!-- Summary Cards -->
-  <section id="summary-section" class="hidden">
-    <div class="stat-grid">
-      <div class="stat-card red">
-        <div class="stat-number" id="stat-high">—</div>
-        <div class="stat-label">High Risk Files</div>
-      </div>
-      <div class="stat-card amber">
-        <div class="stat-number" id="stat-medium">—</div>
-        <div class="stat-label">Medium Risk Files</div>
-      </div>
-      <div class="stat-card green">
-        <div class="stat-number" id="stat-low">—</div>
-        <div class="stat-label">Low Risk Files</div>
-      </div>
-      <div class="stat-card blue">
-        <div class="stat-number" id="stat-avg">—</div>
-        <div class="stat-label">Avg Risk Score</div>
-      </div>
-    </div>
-  </section>
+    <!-- Sidebar -->
+    <aside class="sidebar">
 
-  <!-- Treemap -->
-  <section class="card hidden" id="treemap-section">
-    <h2>Risk Treemap</h2>
-    <p class="hint">
-      Size = complexity · Color = risk score ·
-      Click to drill down
-    </p>
-    <div id="treemap-chart"></div>
-  </section>
-
-  <!-- Network Graph -->
-  <section class="card hidden" id="network-section">
-    <h2>Developer–File Knowledge Network</h2>
-    <p class="hint">
-      Lines show who owns which files ·
-      Thick lines = dominant contributor
-    </p>
-    <div id="network-chart"></div>
-  </section>
-
-  <!-- File Table -->
-  <section class="card hidden" id="table-section">
-    <h2>All High-Risk Files</h2>
-    <table id="risk-table">
-      <thead>
-        <tr>
-          <th>File</th>
-          <th>Score</th>
-          <th>Confidence</th>
-          <th>Top Author</th>
-          <th>Living Knowledge</th>
-          <th>Last Commit</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="table-body"></tbody>
-    </table>
-  </section>
-
-  <!-- File Detail Modal -->
-  <div id="modal" class="modal hidden">
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeModal()">✕</button>
-      <h2 id="modal-file"></h2>
-      <div class="modal-score">
-        Risk Score: <span id="modal-score"></span>
-      </div>
-      <div class="modal-grid">
-        <div class="modal-block">
-          <h3>What it does</h3>
-          <p id="modal-what"></p>
+      <!-- Analyze form -->
+      <div class="sidebar-section">
+        <div class="sidebar-label">Repository</div>
+        <div class="form-field">
+          <label>Owner</label>
+          <input id="owner" type="text" placeholder="facebook">
         </div>
-        <div class="modal-block">
-          <h3>Domain knowledge required</h3>
-          <p id="modal-domain"></p>
+        <div class="form-field">
+          <label>Repository</label>
+          <input id="repo" type="text" placeholder="react">
         </div>
-        <div class="modal-block">
-          <h3>Onboarding notes</h3>
-          <p id="modal-onboarding"></p>
+        <div class="form-field">
+          <label>GitHub Token</label>
+          <input id="token" type="password" placeholder="ghp_···">
         </div>
-        <div class="modal-block highlight">
-          <h3>Recommended action</h3>
-          <p id="modal-action"></p>
+        <div class="form-field">
+          <label>LLM Model</label>
+          <input id="model" type="text" value="gemma4:e4b">
+        </div>
+        <div class="progress-wrap hidden" id="progress-wrap">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <button class="btn-analyze" id="analyze-btn"
+                onclick="startAnalysis()" style="margin-top:16px">
+          Run Analysis
+        </button>
+      </div>
+
+      <!-- Stats -->
+      <div class="sidebar-section hidden" id="stats-section">
+        <div class="sidebar-label">Summary</div>
+        <div class="stats-grid">
+          <div class="stat-cell">
+            <div class="stat-value danger" id="stat-high">—</div>
+            <div class="stat-label">High risk</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-value warn" id="stat-medium">—</div>
+            <div class="stat-label">Medium risk</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-value ok" id="stat-low">—</div>
+            <div class="stat-label">Low risk</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-value muted" id="stat-avg">—</div>
+            <div class="stat-label">Avg score</div>
+          </div>
         </div>
       </div>
-      <div id="modal-flags"></div>
-    </div>
+
+      <!-- File list -->
+      <div class="file-list" id="file-list"></div>
+
+    </aside>
+
+    <!-- Content -->
+    <main class="content" id="content">
+
+      <!-- Empty state -->
+      <div class="empty-state" id="empty-state">
+        <div class="big-text">Who knows<br>what?</div>
+        <div class="sub-text">Enter a repository to begin analysis</div>
+      </div>
+
+      <!-- Results view -->
+      <div class="hidden" id="results-view">
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <button class="tab active" onclick="showTab('overview')">Overview</button>
+          <button class="tab" onclick="showTab('treemap')">Treemap</button>
+          <button class="tab" onclick="showTab('network')">Network</button>
+        </div>
+
+        <!-- Overview tab -->
+        <div class="tab-panel active" id="tab-overview">
+          <div class="charts-row">
+            <div class="chart-card">
+              <div class="chart-title">Risk distribution</div>
+              <div id="histogram-chart" style="height:220px"></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-title">Knowledge concentration</div>
+              <div id="scatter-chart" style="height:220px"></div>
+            </div>
+          </div>
+          <div class="chart-card full" style="margin-top:0">
+            <div class="chart-title">Select a file from the sidebar to view its full risk report</div>
+            <div id="overview-placeholder" style="
+              height:120px;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              font-family:var(--font-mono);
+              font-size:13px; font-weight:bold;
+              color:var(--gray-5);
+              letter-spacing:0.08em;
+            ">← select file</div>
+          </div>
+        </div>
+
+        <!-- Treemap tab -->
+        <div class="tab-panel" id="tab-treemap">
+          <div class="chart-card full">
+            <div class="chart-title">Codebase risk treemap — size = complexity, color = risk score</div>
+            <div id="treemap-chart" style="height:560px"></div>
+          </div>
+        </div>
+
+        <!-- Network tab -->
+        <div class="tab-panel" id="tab-network">
+          <div class="chart-card full">
+            <div class="chart-title">Developer ↔ file knowledge graph</div>
+            <div id="network-chart" style="height:560px"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
   </div>
+</div>
 
+<!-- File detail overlay -->
+<div id="file-detail" class="hidden" style="
+  position:fixed; inset:0; background:var(--black);
+  z-index:200; overflow-y:auto;">
+  <div style="
+    position:sticky; top:0; z-index:10;
+    background:var(--black);
+    border-bottom:var(--border);
+    padding:16px 32px;
+    display:flex; align-items:center; justify-content:space-between;">
+    <span style="font-family:var(--font-mono);font-size:13px;font-weight:bold;color:var(--gray-6)">
+      File Detail
+    </span>
+    <button onclick="closeDetail()" style="
+      background:none; border:var(--border);
+      color:var(--gray-7); font-family:var(--font-mono);
+      font-size:13px; font-weight:bold; padding:6px 14px;
+      border-radius:var(--radius-sm); cursor:pointer;">
+      ← Back
+    </button>
+  </div>
+  <div id="file-detail-content"></div>
 </div>
 
 <script src="/static/js/main.js"></script>

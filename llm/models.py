@@ -3,47 +3,46 @@ from datetime import datetime
 from typing import Optional
 
 
+# llm/models.py — updated LLMSummary dataclass
+
 @dataclass
 class LLMSummary:
-    """
-    Structured output from the LLM for one high-risk file.
-    """
-    file_path:        str
-    risk_score:       float
+    file_path:             str
+    risk_score:            float
 
-    # Core LLM output
-    what_it_does:     str        # what the file does
-    domain_knowledge: str        # what expertise is needed
-    onboarding_notes: str        # what a new dev must understand
-    recommended_action: str      # one concrete action for the team
+    # Restructured fields
+    business_criticality:  str        # High | Medium | Low
+    business_impact:       str        # what breaks if this file fails
+    knowledge_areas:       list[str]  # specific skills required
+    risk_drivers:          list[str]  # + amplifiers, - mitigators
+    recommended_actions:   list[str]  # measurable actions with deadlines
+    onboarding_notes:      str        # what new dev must know
 
     # Metadata
-    model_used:       str
-    generated_at:     datetime   = field(
-                                    default_factory=datetime.now
-                                   )
-    generation_ms:    int        = 0     # latency tracking
-    confidence:       str        = ""    # passed through from RiskScore
-    failed:           bool       = False # True if LLM call errored
-    error_message:    Optional[str] = None
+    model_used:            str
+    generated_at:          datetime   = field(default_factory=datetime.now)
+    generation_ms:         int        = 0
+    confidence:            str        = ""
+    failed:                bool       = False
+    error_message:         Optional[str] = None
 
     def to_dict(self) -> dict:
         return {
-            "file_path":          self.file_path,
-            "risk_score":         self.risk_score,
-            "what_it_does":       self.what_it_does,
-            "domain_knowledge":   self.domain_knowledge,
-            "onboarding_notes":   self.onboarding_notes,
-            "recommended_action": self.recommended_action,
-            "model_used":         self.model_used,
-            "generated_at":       self.generated_at.isoformat(),
-            "generation_ms":      self.generation_ms,
-            "confidence":         self.confidence,
-            "failed":             self.failed,
-            "error_message":      self.error_message,
+            "file_path":            self.file_path,
+            "risk_score":           self.risk_score,
+            "business_criticality": self.business_criticality,
+            "business_impact":      self.business_impact,
+            "knowledge_areas":      self.knowledge_areas,
+            "risk_drivers":         self.risk_drivers,
+            "recommended_actions":  self.recommended_actions,
+            "onboarding_notes":     self.onboarding_notes,
+            "model_used":           self.model_used,
+            "generated_at":         self.generated_at.isoformat(),
+            "generation_ms":        self.generation_ms,
+            "confidence":           self.confidence,
+            "failed":               self.failed,
+            "error_message":        self.error_message,
         }
-
-
 @dataclass
 class SummaryBatch:
     """

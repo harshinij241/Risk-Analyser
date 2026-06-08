@@ -99,7 +99,7 @@ def to_markdown(scores: list[RiskScore],
     Slack messages, or internal wikis.
     """
     lines = [
-        f"## Knowledge Risk Report — {repo_name}",
+        f"## TacitAI Report — {repo_name}",
         f"*Generated {datetime.now().strftime('%Y-%m-%d %H:%M')}*",
         "",
         f"### Top {min(top_n, len(scores))} highest-risk files",
@@ -238,7 +238,7 @@ def to_github_action_summary(scores: list[RiskScore],
         return f"✅ No files exceeded risk threshold of {threshold:.0f}."
 
     lines = [
-        f"## ⚠️ Knowledge Risk Alert",
+        f"## ⚠️ TacitAI Alert",
         f"{len(triggered)} file(s) exceed risk threshold of {threshold:.0f}",
         "",
         "| File | Score | Top Author | Living Knowledge |",

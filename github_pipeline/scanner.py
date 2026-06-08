@@ -1,23 +1,24 @@
+# github_pipeline/scanner.py
+
 import fnmatch
 import logging
 from dataclasses import dataclass, field
 from typing import Optional
 from .client import GitHubClient
-from knowledge_risk.filters import is_excluded_file
+from knowledge_risk.filters import is_excluded_file, should_analyze
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class ScanConfig:
-    path_prefix:    Optional[str]  = None   # e.g. "src/" for monorepos
-    max_files:      int            = 2000
-    include_globs:  list[str]      = field(default_factory=list)
-    exclude_globs:  list[str]      = field(default_factory=list)
-    min_file_size:  int            = 0       # bytes, skip tiny files
+    path_prefix:   Optional[str] = None
+    max_files:     int           = 2000
+    include_globs: list[str]     = field(default_factory=list)
+    exclude_globs: list[str]     = field(default_factory=list)
+    min_file_size: int           = 0
 
 
-# GraphQL query to fetch entire file tree in one request
 TREE_QUERY = """
 query RepoTree($owner: String!, $repo: String!, $branch: String!) {
   repository(owner: $owner, name: $repo) {
@@ -55,18 +56,14 @@ class RepoScanner:
 
     def get_default_branch(self, owner: str, repo: str) -> str:
         data, _ = self.client.get(f"/repos/{owner}/{repo}")
-        return data["default_branch"]
+        if not data:
+            raise ValueError(f"Repository {owner}/{repo} not found or access denied.")
+        return data.get("default_branch", "main")
 
     def scan(self, owner: str, repo: str) -> list[str]:
-        """
-        Returns list of file paths to analyze.
-        Applies all configured filters.
-        """
         branch = self.get_default_branch(owner, repo)
 
-        logger.info(
-            f"Scanning {owner}/{repo} on branch {branch}"
-        )
+        logger.info(f"Scanning {owner}/{repo} on branch {branch}")
 
         data = self.client.graphql(
             TREE_QUERY,
@@ -107,7 +104,7 @@ class RepoScanner:
         return files
 
     def _should_include(self, path: str, size: int) -> bool:
-        # Path prefix filter (monorepo support)
+        # Path prefix filter
         if self.config.path_prefix:
             if not path.startswith(self.config.path_prefix):
                 return False
@@ -116,11 +113,11 @@ class RepoScanner:
         if size < self.config.min_file_size:
             return False
 
-        # Risk engine's own exclusion list
-        if is_excluded_file(path):
+        # Full classification — only source code passes
+        if not should_analyze(path):
             return False
 
-        # Custom include globs — if specified, path must match one
+        # Custom include globs
         if self.config.include_globs:
             if not any(
                 fnmatch.fnmatch(path, g)
